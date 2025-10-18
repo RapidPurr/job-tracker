@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luqman Application Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAS1BMVEUAAAB/f3+ZmZn///8ZGRnq6urp6enDw8Ojo6P29vb7+/vr6+vk5OTr6+vh4eGgoKC+vr6enp7c3NxCQkJKSkqrq6vCwsJLS0tfX1+FhYR0dHSEhITDw8N8fjPrAAAADHRSTlMAYiHLenV4RBGwvGR7jrmUQEAAABMSURBVBgZBcEHEoAgCAXQFSKlbXBz/f9nYk6aSElyiCo6OQX0mECmaPDTt8Xl+VCPSMSwN8hB7DU7Xr6OUORBqMdGUUlLxtWMQXTPXvtUilbGHkIpR+XgKfXxqhTzqJOZ+gAAAABJRU5ErkJggg==" />
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>Luqman Application Tracker</h1>
+                <div class="header-actions">
+                    <input type="file" id="csvImport" accept=".csv" onchange="importFromCSV()" style="display: none;">
+                    <button class="btn btn--outline" onclick="document.getElementById('csvImport').click()">Import CSV</button>
+                    <button class="btn btn--secondary" onclick="exportToCSV()">Export CSV</button>
+                    <button class="btn btn--primary" onclick="openAddModal()">Add Application</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Dashboard -->
+        <section class="dashboard">
+            <div class="stats-grid">
+                <div class="card stat-card">
+                    <div class="card__body">
+                        <h3>Total Applications</h3>
+                        <p class="stat-number" id="totalApps">0</p>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card__body">
+                        <h3>Interviews</h3>
+                        <p class="stat-number" id="interviews">0</p>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card__body">
+                        <h3>Offers</h3>
+                        <p class="stat-number" id="offers">0</p>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card__body">
+                        <h3>Overdue Deadlines</h3>
+                        <p class="stat-number" id="overdue">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="charts-grid">
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Applications by Status</h3>
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Applications Timeline</h3>
+                        <div class="chart-container">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search and Filter -->
+        <section class="filters">
+            <div class="filter-row">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search applications..." oninput="filterApplications()">
+                </div>
+                <div class="filter-controls">
+                    <select id="statusFilter" onchange="filterApplications()">
+                        <option value="">All Statuses</option>
+                        <option value="Need to Apply">Need to Apply</option>
+                        <option value="Applied">Applied</option>
+                        <option value="Assessment">Assessment</option>
+                        <option value="Interviewing">Interviewing</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Withdrawn">Withdrawn</option>
+                    </select>
+                    <select id="priorityFilter" onchange="filterApplications()">
+                        <option value="">All Priorities</option>
+                        <option value="5">High (5)</option>
+                        <option value="4">Medium-High (4)</option>
+                        <option value="3">Medium (3)</option>
+                        <option value="2">Low-Medium (2)</option>
+                        <option value="1">Low (1)</option>
+                    </select>
+                    <select id="workLocationFilter" onchange="filterApplications()">
+                        <option value="">All Locations</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="Remote">Remote</option>
+                        <option value="On-site">On-site</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Applications Table -->
+        <section class="applications-section">
+            <div class="card">
+                <div class="card__body">
+                    <div class="table-wrapper">
+                        <table class="applications-table" id="applicationsTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('company')">Company <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('job_title')">Job Title <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('job_type')">Type <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('work_location')">Location <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('salary_range')">Salary <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('status')">Status <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('priority')">Priority <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('date_applied')">Applied <span class="sort-indicator"></span></th>
+                                    <th onclick="sortTable('application_deadline_date')">Deadline <span class="sort-indicator"></span></th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicationsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="recent-activity">
+            <div class="card">
+                <div class="card__header">
+                    <h3>Recent Activity</h3>
+                </div>
+                <div class="card__body">
+                    <div id="recentActivity"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Add/Edit Application Modal -->
+    <div class="modal" id="applicationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Application</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="applicationForm" onsubmit="saveApplication(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="company">Company *</label>
+                        <input type="text" class="form-control" id="company" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="jobTitle">Job Title *</label>
+                        <input type="text" class="form-control" id="jobTitle" required>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="jobType">Job Type</label>
+                        <select class="form-control" id="jobType">
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Freelance">Freelance</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="workLocation">Work Location</label>
+                        <select class="form-control" id="workLocation">
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Remote">Remote</option>
+                            <option value="On-site">On-site</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="salaryRange">Salary Range</label>
+                        <input type="text" class="form-control" id="salaryRange" placeholder="e.g., $100,000 - $120,000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contactPerson">Contact Person</label>
+                        <input type="text" class="form-control" id="contactPerson">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="status">Status</label>
+                        <select class="form-control" id="status">
+                            <option value="Need to Apply">Need to Apply</option>
+                            <option value="Applied">Applied</option>
+                            <option value="Assessment">Assessment</option>
+                            <option value="Interviewing">Interviewing</option>
+                            <option value="Accepted">Accepted</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Withdrawn">Withdrawn</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="priority">Priority</label>
+                        <select class="form-control" id="priority">
+                            <option value="1">1 - Low</option>
+                            <option value="2">2 - Low-Medium</option>
+                            <option value="3" selected>3 - Medium</option>
+                            <option value="4">4 - Medium-High</option>
+                            <option value="5">5 - High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="dateApplied">Date Applied</label>
+                        <input type="date" class="form-control" id="dateApplied">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="followUpDate">Follow-up Date</label>
+                        <input type="date" class="form-control" id="followUpDate">
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" for="applicationDeadline">Application Deadline</label>
+                    <input type="date" class="form-control" id="applicationDeadline">
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" for="jobUrl">Job URL</label>
+                    <input type="url" class="form-control" id="jobUrl" placeholder="https://">
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" for="jobDescription">Job Description</label>
+                    <textarea class="form-control" id="jobDescription" rows="4" placeholder="Enter job description, requirements, and other details..."></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" for="notes">Notes</label>
+                    <textarea class="form-control" id="notes" rows="3" placeholder="Additional notes..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn--outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
