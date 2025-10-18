@@ -1167,6 +1167,16 @@ textarea.form-control {
   color: var(--color-warning);
 }
 
+.status--not-open {
+  background-color: var(--color-bg-2);
+  color: var(--color-warning);
+}
+
+.status--apply-later {
+  background-color: var(--color-bg-2);
+  color: var(--color-warning);
+}
+
 .status--applied {
   background-color: var(--color-bg-1);
   color: var(--color-info);
